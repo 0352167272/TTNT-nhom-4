@@ -17,9 +17,10 @@ def is_in(board, y, x):
     return 0 <= y < len(board) and 0 <= x < len(board)
 
 def is_win(board):
+    
     black = score_of_col(board,'b')
     white = score_of_col(board,'w')
-
+    
     sum_sumcol_values(black)
     sum_sumcol_values(white)
     
@@ -32,7 +33,6 @@ def is_win(board):
         return 'Draw'
         
     return 'Continue playing'
-
 
 ##AI Engine
 
@@ -274,106 +274,89 @@ def best_move(board,col):
                     maxscorecol = scorecol
                     movecol = move
     return movecol
-
-##Graphics Engine
-
-def draw_stone(x, y, colturtle, symbol):
+def display_message(message):
     """
-    Vẽ quân cờ (X hoặc O) trong tâm của ô vuông tại vị trí (x, y).
+    Hiển thị thông báo trên màn hình.
     """
-    # Chuyển tọa độ sang tâm ô vuông
-    cell_size = 1  # Kích thước ô vuông là 1x1
-    center_x = x + cell_size / 2
-    center_y = y + cell_size / 2
+    # Tạo đối tượng Turtle để hiển thị thông báo
+    message_turtle = turtle.Turtle()
+    message_turtle.hideturtle()  # Ẩn con trỏ
+    message_turtle.penup()  # Không vẽ đường
+    message_turtle.color("blue")  # Màu chữ
 
-    colturtle.penup()
-    colturtle.goto(center_x, center_y)
+    # Đặt vị trí của thông báo ở giữa màn hình
+    message_turtle.goto(0, 0)
+    
+    # Hiển thị thông báo
+    message_turtle.write(message, align="center", font=("Arial", 16, "bold"))
+    
+    # Lưu đối tượng Turtle để có thể xóa khi có kết quả mới
+    return message_turtle
 
-    # Set màu vẽ và chiều dày nét
-    colturtle.pensize(3)
-    colturtle.setheading(0)
-
-    if symbol == 'X':
-        # Vẽ dấu X
-        colturtle.goto(center_x - 0.3, center_y - 0.3)
-        colturtle.pendown()
-        colturtle.goto(center_x + 0.3, center_y + 0.3)
-        colturtle.penup()
-        colturtle.goto(center_x - 0.3, center_y + 0.3)
-        colturtle.pendown()
-        colturtle.goto(center_x + 0.3, center_y - 0.3)
-    elif symbol == 'O':
-        # Vẽ dấu O
-        colturtle.penup()
-        colturtle.goto(center_x, center_y - 0.3)  # Điểm bắt đầu vẽ hình tròn
-        colturtle.pendown()
-        colturtle.circle(0.3)  # Bán kính hình tròn là 0.3
-    colturtle.penup()
-def display_result(winner):
-    """
-    Hiển thị thông báo kết quả trên màn hình.
-    :param winner: 'X', 'O', hoặc None (nếu hòa)
-    """
-    result_turtle = turtle.Turtle()
-    result_turtle.hideturtle()
-    result_turtle.penup()
-    result_turtle.goto(0, 0)  # Hiển thị thông báo ở giữa màn hình
-    result_turtle.color("Blue")
-    result_turtle.write(
-        f"                                                      Người chơi {winner} !" if winner else "Hòa!", 
-        align="center", 
-        font=("Arial", 24, "bold")
-    )
 def click(x, y):
-    global board, colors, win, move_history
+    global board, colors, win, move_history, message_turtle
 
-    # Kiểm tra nếu đã có người thắng hoặc hòa
+    # Nếu trò chơi đã kết thúc, không cho phép click nữa
     if win:
-        return  # Nếu đã thắng hoặc hòa, không cho phép click nữa.
-
+        return
+    
     x, y = getindexposition(x, y)
 
     if x == -1 and y == -1 and len(move_history) != 0:
         x, y = move_history[-1]
-        del (move_history[-1])
+        del(move_history[-1])
         board[y][x] = " "
         x, y = move_history[-1]
-        del (move_history[-1])
+        del(move_history[-1])
         board[y][x] = " "
         return
-
+    
     if not is_in(board, y, x):
         return
-
+    
     if board[y][x] == ' ':
-        draw_stone(x, y, colors['b'], 'X')  # Vẽ X
+        
+        draw_stone(x, y, colors['b'])
         board[y][x] = 'b'
-
+        
         move_history.append((x, y))
-
+        
         game_res = is_win(board)
         if game_res in ["White won", "Black won", "Draw"]:
-            print(game_res)  # In kết quả ra màn hình
+            print(game_res)
             win = True  # Đánh dấu trò chơi đã kết thúc
-            display_result(game_res)  # Hiển thị kết quả lên giao diện
+            # Hiển thị thông báo khi có người thắng hoặc hòa
+            if game_res == "Black won":
+                message_turtle = display_message("                                                                           Chúc mừng! Bạn đã giành chiến thắng.")
+            elif game_res == "White won":
+                message_turtle = display_message("                                                                           Rất tiếc! Bạn đã thua.")
+            else:
+                message_turtle = display_message("                                                                           Rất tiếc! Trận này hoà.")
             return
-
+        
         ay, ax = best_move(board, 'w')
-        draw_stone(ax, ay, colors['w'], 'O')  # Vẽ O
-        board[ay][ax] = 'w'
-
+        draw_stone(ax, ay, colors['w'])
+        board[ay][ax] = 'w'    
+        
         move_history.append((ax, ay))
-
+        
         game_res = is_win(board)
         if game_res in ["White won", "Black won", "Draw"]:
-            print(game_res)  # In kết quả ra màn hình
+            print(game_res)
             win = True  # Đánh dấu trò chơi đã kết thúc
-            display_result(game_res)  # Hiển thị kết quả lên giao diện
+            # Hiển thị thông báo khi có người thắng hoặc hòa
+            if game_res == "Black won":
+                message_turtle = display_message("                                                                             Chúc mừng! Bạn đã giành chiến thắng.")
+            elif game_res == "White won": 
+                message_turtle = display_message("                                                                             Rất tiếc! Bạn đã thua.")
+            else:
+                message_turtle = display_message("                                                                             Rất tiếc! Trận này hoà.")
             return
 
-
+    
 def initialize(size):
-    global win, board, screen, colors, move_history
+    
+    global win,board,screen,colors, move_history
     
     move_history = []
     win = False
@@ -382,12 +365,12 @@ def initialize(size):
     screen = turtle.Screen()
     screen.title("Game cờ Caro đánh với AI")
     screen.onclick(click)
-    screen.setup(screen.screensize()[1]*2, screen.screensize()[1]*2)
-    screen.setworldcoordinates(-1, size, size, -1)
+    screen.setup(screen.screensize()[1]*2,screen.screensize()[1]*2)
+    screen.setworldcoordinates(-1,size,size,-1)
     screen.bgcolor('gray')
     screen.tracer(500)
     
-    colors = {'w': turtle.Turtle(), 'b': turtle.Turtle(), 'g': turtle.Turtle()}
+    colors = {'w':turtle.Turtle(),'b':turtle.Turtle(), 'g':turtle.Turtle()}
     colors['w'].color('white')
     colors['b'].color('black')
   
@@ -400,36 +383,56 @@ def initialize(size):
     border.speed(9)
     border.penup()
     
-    side = (size-1) / 2
+    side = (size-1)/2
     
-    i = -1
+    i=-1
     for start in range(size):
-        border.goto(start, side + side * i)    
+        border.goto(start,side + side *i)    
         border.pendown()
-        i *= -1
-        border.goto(start, side + side * i)     
+        i*=-1
+        border.goto(start,side + side *i)     
         border.penup()
         
-    i = 1
+    i=1
     for start in range(size):
-        border.goto(side + side * i, start)
+        border.goto(side + side *i,start)
         border.pendown()
         i *= -1
-        border.goto(side + side * i, start)
+        border.goto(side + side *i,start)
         border.penup()
         
     border.ht()
     
     screen.listen()
     screen.mainloop()
+    
+def getindexposition(x,y):
+    '''
+    lấy index
+    '''
+    intx,inty = int(x),int(y)
+    dx,dy = x-intx,y-inty
+    if dx > 0.5:
+        x = intx +1
+    elif dx<-0.5:
+        x = intx -1
+    else:
+        x = intx
+    if dy > 0.5:
+        y = inty +1
+    elif dx<-0.5:
+        y = inty -1
+    else:
+        y = inty
+    return x,y
 
-
-def getindexposition(x, y):
-    """
-    Lấy chỉ số hàng và cột của ô vuông chứa vị trí chuột nhấp.
-    """
-    intx, inty = int(x), int(y)
-    return intx, inty
+def draw_stone(x,y,colturtle):
+    colturtle.goto(x,y-0.3)
+    colturtle.pendown()
+    colturtle.begin_fill()
+    colturtle.circle(0.3)
+    colturtle.end_fill()
+    colturtle.penup()
     
 if __name__ == '__main__':
-    initialize(15)
+    initialize(10)
